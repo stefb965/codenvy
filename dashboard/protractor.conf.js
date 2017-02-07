@@ -21,12 +21,25 @@ exports.config = {
         '--window-size=1024,768']
     }
   },
-  
+
   baseUrl: 'http://localhost:3000',
 
   // Spec patterns are relative to the current working directory when
   // protractor is called.
   specs: [paths.e2e + '/**/*.js'],
+
+  // This can be changed via command line as:
+  // --params.login.user='valid-login' --params.login.password='valid-password'
+  params: {
+    login: {
+      user: 'fake-login',
+      password: 'fake-password'
+    },
+    fakeLogin: {
+      user: 'fake-login',
+      password: 'fake-password'
+    }
+  },
 
   // Options to be passed to Jasmine-node.
   jasmineNodeOpts: {
