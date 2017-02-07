@@ -14,6 +14,18 @@
  */
 'use strict';
 
+interface Iteam {
+  id: string;
+  name?: string;
+  parent?: string;
+}
+
+interface IUser {
+  id: string;
+  name?: string;
+  email?: string;
+  aliases?: string;
+}
 
 /**
  * This class is providing helper methods for simulating a fake HTTP backend simulating
@@ -22,35 +34,42 @@
  */
 export class CodenvyHttpBackend {
 
+  private httpBackend: ng.IHttpBackendService;
+  private teamsMap: Map<string, Iteam>;
+  private defaultUser: IUser;
+  private defaultBranding: any;
+  private userIdMap: Map<string, IUser>;
+  private userEmailMap: Map<string, IUser>;
+  private factoriesMap: Map<string, any>;
+  private pageMaxItem: number;
+  private pageSkipCount: number;
+
   /**
    * Constructor to use
    */
-  constructor($httpBackend, codenvyAPIBuilder) {
+  constructor($httpBackend: ng.IHttpBackendService) {
     this.httpBackend = $httpBackend;
 
     this.defaultBranding = {};
 
-    this.defaultUser = {};
+    this.defaultUser = {id: 'testId'};
     this.userIdMap = new Map();
     this.userEmailMap = new Map();
 
     this.factoriesMap = new Map();
-
     this.pageMaxItem = 5;
     this.pageSkipCount = 0;
+
+    this.teamsMap = new Map();
 
     this.httpBackend.when('OPTIONS', '/api/').respond({});
 
     // change password
-    this.httpBackend.when('POST', '/api/user/password').respond(() => {
-      return [200, {success: true, errors: []}];
-    });
+    this.httpBackend.when('POST', '/api/user/password').respond(200, {});
 
     // create new user
-    this.httpBackend.when('POST', '/api/user').respond(() => {
-      return [200, {success: true, errors: []}];
-    });
-    //license legality - true
+    this.httpBackend.when('POST', '/api/user').respond(200, {});
+    // license legality - true
     this.httpBackend.when('GET', '/api/license/system/legality').respond({isLegal: true});
 
     // admin role - false
@@ -65,7 +84,7 @@ export class CodenvyHttpBackend {
   /**
    * Setup Backend for factories
    */
-  factoriesBackendSetup() {
+  factoriesBackendSetup(): void {
     let allFactories = [];
     let pageFactories = [];
 
@@ -73,17 +92,15 @@ export class CodenvyHttpBackend {
     for (let key of factoriesKeys) {
       let factory = this.factoriesMap.get(key);
       this.httpBackend.when('GET', '/api/factory/' + factory.id).respond(factory);
-      this.httpBackend.when('DELETE', '/api/factory/' + factory.id).respond(() => {
-        return [200, {success: true, errors: []}];
-      });
+      this.httpBackend.when('DELETE', '/api/factory/' + factory.id).respond(200, {});
       allFactories.push(factory);
     }
 
     if (this.defaultUser) {
       this.httpBackend.when('GET', '/api/user').respond(this.defaultUser);
 
-      if (allFactories.length >  this.pageSkipCount) {
-        if(allFactories.length > this.pageSkipCount + this.pageMaxItem) {
+      if (allFactories.length > this.pageSkipCount) {
+        if (allFactories.length > this.pageSkipCount + this.pageMaxItem) {
           pageFactories = allFactories.slice(this.pageSkipCount, this.pageSkipCount + this.pageMaxItem);
         } else {
           pageFactories = allFactories.slice(this.pageSkipCount);
@@ -96,7 +113,7 @@ export class CodenvyHttpBackend {
   /**
    * Setup all users
    */
-  usersBackendSetup() {
+  usersBackendSetup(): void {
     this.httpBackend.when('GET', '/api/user').respond(this.defaultUser);
 
     let userIdKeys = this.userIdMap.keys();
@@ -111,59 +128,92 @@ export class CodenvyHttpBackend {
   }
 
   /**
-   * Add the given factory
-   * @param factory
+   * Setup all teams
    */
-  addUserFactory(factory) {
+  teamsBackendSetup(): void {
+    let teamIdKeys = this.teamsMap.keys();
+    let teams: Array<Iteam> = [];
+    for (let key of teamIdKeys) {
+      let team = this.teamsMap.get(key);
+      if (team) {
+        teams.push(team);
+        if (team.id) {
+          this.httpBackend.when('POST', '/api/organization/' + key, team).respond(200, {});
+        }
+        if (team.name) {
+          this.httpBackend.when('GET', '/api/organization/find?name=' + team.name).respond(200, team);
+        }
+      }
+      this.httpBackend.when('DELETE', '/api/organization/' + key).respond(200, {});
+    }
+    if (teams.length) {
+      this.httpBackend.when('GET', '/api/organization').respond(teams);
+      this.httpBackend.when('POST', '/api/organization').respond(200, {});
+    }
+  }
+
+  /**
+   * Add the given factory
+   * @param factory {any}
+   */
+  addUserFactory(factory: any): void {
     this.factoriesMap.set(factory.id, factory);
   }
 
   /**
    * Sets max objects on response
-   * @param pageMaxItem
+   * @param pageMaxItem {number}
    */
-  setPageMaxItem(pageMaxItem) {
+  setPageMaxItem(pageMaxItem: number): void {
     this.pageMaxItem = pageMaxItem;
   }
 
   /**
    * Sets skip count of values
-   * @param pageSkipCount
+   * @param pageSkipCount {number}
    */
-  setPageSkipCount(pageSkipCount) {
+  setPageSkipCount(pageSkipCount: number): void {
     this.pageSkipCount = pageSkipCount;
   }
 
   /**
    * Add the given user
-   * @param user
+   * @param user {IUser}
    */
-  setDefaultUser(user) {
+  setDefaultUser(user: IUser): void {
     this.defaultUser = user;
   }
 
   /**
    * Add the given user to userIdMap
-   * @param user
+   * @param user {IUser}
    */
-  addUserById(user) {
+  addUserById(user: IUser): void {
     this.userIdMap.set(user.id, user);
   }
 
   /**
    * Add the given user to userEmailMap
-   * @param user
+   * @param user {IUser}
    */
-  addUserEmail(user) {
+  addUserEmail(user: IUser): void {
     this.userEmailMap.set(user.email, user);
   }
 
   /**
    * Gets the internal http backend used
-   * @returns {CheHttpBackend.httpBackend|*}
+   * @returns {ng.IHttpBackendService}
    */
-  getHttpBackend() {
+  getHttpBackend(): ng.IHttpBackendService {
     return this.httpBackend;
+  }
+
+  /**
+   * Add the given team
+   * @param team {Iteam}
+   */
+  setTeam(team: Iteam): void {
+    this.teamsMap.set(team.id, team);
   }
 }
 

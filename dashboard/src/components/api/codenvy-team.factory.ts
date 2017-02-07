@@ -18,11 +18,11 @@ import {CodenvyTeamRoles} from './codenvy-team-roles';
 import {CodenvyUser} from './codenvy-user.factory';
 
 interface ITeamsResource<T> extends ng.resource.IResourceClass<T> {
-  getTeams(): ng.resource.IResource<T>,
-  createTeam(data: {name: string, parent: string}): ng.resource.IResource<T>,
-  deleteTeam(data: {id: string}): ng.resource.IResource<T>,
-  updateTeam(data: {id: string}, team: any): ng.resource.IResource<T>,
-  findTeam(data: {teamName: string}): ng.resource.IResource<T>,
+  getTeams(): ng.resource.IResource<T>;
+  createTeam(data: { name: string, parent: string }): ng.resource.IResource<T>;
+  deleteTeam(data: { id: string }): ng.resource.IResource<T>;
+  updateTeam(data: { id: string }, team: any): ng.resource.IResource<T>;
+  findTeam(data: { teamName: string }): ng.resource.IResource<T>;
 }
 
 /**
@@ -40,23 +40,23 @@ export class CodenvyTeam {
   /**
    * Teams map by team's id.
    */
-  private teamsMap : Map<string, any> = new Map();
+  private teamsMap: Map<string, any> = new Map();
   /**
    * Array of teams.
    */
-  private teams : any = [];
+  private teams: any = [];
   /**
    * The registry for managing available namespaces.
    */
-  private cheNamespaceRegistry : any;
+  private cheNamespaceRegistry: any;
   /**
    * The Codenvy user API.
    */
-  private codenvyUser : CodenvyUser;
+  private codenvyUser: CodenvyUser;
   /**
    * User's personal account.
    */
-  private personalAccount: any;
+  private personalAccount: any = {};
   /**
    * Client for requesting Team API.
    */
@@ -87,7 +87,10 @@ export class CodenvyTeam {
 
     this.fetchTeamsDefer = this.$q.defer();
     const fetchTeamsPromise = this.fetchTeamsDefer.promise;
-    this.cheNamespaceRegistry.setFetchPromise(fetchTeamsPromise);
+
+    if (angular.isDefined(this.cheNamespaceRegistry.setFetchPromise)) {
+      this.cheNamespaceRegistry.setFetchPromise(fetchTeamsPromise);
+    }
   }
 
   /**
@@ -105,7 +108,7 @@ export class CodenvyTeam {
       this.codenvyUser.fetchUser().then(() => {
         this.processTeams(teams, this.codenvyUser.getUser());
         defer.resolve();
-      }, (error) => {
+      }, (error: any) => {
         if (error.status === 304) {
           this.processTeams(teams, this.codenvyUser.getUser());
           defer.resolve();
@@ -142,15 +145,23 @@ export class CodenvyTeam {
 
     if (this.personalAccount) {
       // display personal account as "personal" on UI, namespace(id) stays the same for API interactions:
-      this.cheNamespaceRegistry.getNamespaces().push({id: this.personalAccount.name, label: 'personal', location: '/billing'});
+      this.cheNamespaceRegistry.getNamespaces().push({
+        id: this.personalAccount.name,
+        label: 'personal',
+        location: '/billing'
+      });
     }
 
-    teams.forEach((team : any) => {
+    teams.forEach((team: any) => {
       this.teamsMap.set(team.id, team);
       // team has to have parent (root organizations are skipped):
       if (team.parent) {
         this.teams.push(team);
-        this.cheNamespaceRegistry.getNamespaces().push({id: team.name, label: team.name, location: '/team/' + team.name});
+        this.cheNamespaceRegistry.getNamespaces().push({
+          id: team.name,
+          label: team.name,
+          location: '/team/' + team.name
+        });
       }
     });
   }
@@ -180,7 +191,7 @@ export class CodenvyTeam {
    * @returns {ng.IPromise<any>} result promise
    */
   fetchTeamByName(name: string): ng.IPromise<any> {
-    let promise = this.remoteTeamAPI.findTeam({'teamName' : name}).$promise;
+    let promise = this.remoteTeamAPI.findTeam({'teamName': name}).$promise;
     return promise;
   }
 
@@ -195,7 +206,7 @@ export class CodenvyTeam {
       if (this.teams[i].name === name) {
         return this.teams[i];
       }
-    };
+    }
 
     return null;
   }
@@ -207,7 +218,7 @@ export class CodenvyTeam {
    * @returns {ng.IPromise<any>} result promise
    */
   createTeam(name: string): ng.IPromise<any> {
-    let data = {name : name, parent: this.personalAccount.id};
+    let data = {name: name, parent: this.personalAccount.id};
     let promise = this.remoteTeamAPI.createTeam(data).$promise;
     return promise;
   }
@@ -219,7 +230,7 @@ export class CodenvyTeam {
    * @returns {ng.IPromise<any>} result promise
    */
   deleteTeam(id: string): ng.IPromise<any> {
-    let promise = this.remoteTeamAPI.deleteTeam({'id' : id}).$promise;
+    let promise = this.remoteTeamAPI.deleteTeam({'id': id}).$promise;
     return promise;
   }
 
@@ -230,7 +241,7 @@ export class CodenvyTeam {
    * @returns {ng.IPromise<any>} result promise
    */
   updateTeam(team: any): ng.IPromise<any> {
-    let promise = this.remoteTeamAPI.updateTeam({'id' : team.id}, team).$promise;
+    let promise = this.remoteTeamAPI.updateTeam({'id': team.id}, team).$promise;
     return promise;
   }
 

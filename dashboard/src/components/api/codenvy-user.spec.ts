@@ -13,6 +13,9 @@
  * from Codenvy S.A..
  */
 'use strict';
+import {CodenvyUser} from './codenvy-user.factory';
+import {CodenvyAPIBuilder} from './builder/codenvy-api-builder.factory';
+import {CodenvyHttpBackend} from './test/codenvy-http-backend';
 
 /**
  * Test of the Codenvy User API
@@ -22,22 +25,22 @@ describe('CodenvyUser', () => {
   /**
    * User Factory for the test
    */
-  let factory;
+  let factory: CodenvyUser;
 
   /**
    * API builder.
    */
-  let apiBuilder;
+  let apiBuilder: CodenvyAPIBuilder;
 
   /**
    * Backend for handling http operations
    */
-  let httpBackend;
+  let httpBackend: ng.IHttpBackendService;
 
   /**
    * Codenvy backend
    */
-  let codenvyBackend;
+  let codenvyBackend: CodenvyHttpBackend;
 
   /**
    *  setup module
@@ -47,7 +50,7 @@ describe('CodenvyUser', () => {
   /**
    * Inject factory and http backend
    */
-  beforeEach(inject((codenvyUser, codenvyAPIBuilder, codenvyHttpBackend) => {
+  beforeEach(inject((codenvyUser: CodenvyUser, codenvyAPIBuilder: CodenvyAPIBuilder, codenvyHttpBackend: CodenvyHttpBackend) => {
 
     factory = codenvyUser;
     apiBuilder = codenvyAPIBuilder;
@@ -78,11 +81,10 @@ describe('CodenvyUser', () => {
       codenvyBackend.setDefaultUser(testUser);
 
       // setup backend for users
-      //codenvyBackend.setup();
       codenvyBackend.usersBackendSetup();
 
       // fetch user
-      factory.fetchUser(true);
+      factory.fetchUser();
 
       // expecting GETs
       httpBackend.expectGET('/api/user');
@@ -238,7 +240,7 @@ describe('CodenvyUser', () => {
       codenvyBackend.usersBackendSetup();
 
       // gets page
-      let pageObject = factory._getPageFromResponse(users, headersLink);
+      let pageObject: any = factory._getPageFromResponse(users, headersLink);
 
       // flush command
       httpBackend.flush();

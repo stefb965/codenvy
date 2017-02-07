@@ -17,6 +17,7 @@
 
 import {CodenvyUserBuilder} from './codenvy-user-builder';
 import {CodenvyFactoryBuilder} from './codenvy-factory-builder';
+import {CodenvyTeamBuilder} from './codenvy-team-builder';
 
 /**
  * This class is providing the entry point for accessing the builders
@@ -25,18 +26,11 @@ import {CodenvyFactoryBuilder} from './codenvy-factory-builder';
  */
 export class CodenvyAPIBuilder {
 
-  /**
-   * Default constructor
-   * @ngInject for Dependency injection
-   */
-  constructor () {
-  }
-
   /***
    * The Codenvy User builder
    * @returns {CodenvyUserBuilder}
    */
-  getUserBuilder() {
+  getUserBuilder(): CodenvyUserBuilder {
     return new CodenvyUserBuilder();
   }
 
@@ -44,7 +38,15 @@ export class CodenvyAPIBuilder {
    * The Codenvy Factory builder
    * @returns {CodenvyFactoryBuilder}
    */
-  getFactoryBuilder() {
+  getFactoryBuilder(): CodenvyFactoryBuilder {
     return new CodenvyFactoryBuilder();
+  }
+
+  /***
+   * The Codenvy Team builder
+   * @returns {CodenvyTeamBuilder}
+   */
+  getTeamBuilder(): CodenvyTeamBuilder {
+    return new CodenvyTeamBuilder();
   }
 }

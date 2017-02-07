@@ -14,6 +14,12 @@
  */
 'use strict';
 
+interface IUser {
+  id: string;
+  name?: string;
+  email?: string;
+  aliases?: string;
+}
 
 /**
  * This class is providing a builder for User
@@ -22,12 +28,7 @@
  */
 export class CodenvyUserBuilder {
 
-  /**
-   * Default constructor.
-   */
-  constructor() {
-    this.user = {};
-  }
+  user: IUser = {id: 'testUserId'};
 
 
   /**
@@ -35,7 +36,7 @@ export class CodenvyUserBuilder {
    * @param email the email to use
    * @returns {CodenvyUserBuilder}
    */
-  withEmail(email) {
+  withEmail(email: string): CodenvyUserBuilder {
     this.user.email = email;
     return this;
   }
@@ -45,8 +46,18 @@ export class CodenvyUserBuilder {
    * @param id the id to use
    * @returns {CodenvyUserBuilder}
    */
-  withId(id) {
+  withId(id: string): CodenvyUserBuilder {
     this.user.id = id;
+    return this;
+  }
+
+  /**
+   * Sets the name of the user
+   * @param name {string}
+   * @returns {CodenvyUserBuilder}
+   */
+  withName(name: string): CodenvyUserBuilder {
+    this.user.name = name;
     return this;
   }
 
@@ -55,16 +66,16 @@ export class CodenvyUserBuilder {
    * @param aliases the aliases to use
    * @returns {CodenvyUserBuilder}
    */
-  withAliases(aliases) {
+  withAliases(aliases: string): CodenvyUserBuilder {
     this.user.aliases = aliases;
     return this;
   }
 
   /**
    * Build the user
-   * @returns {CodenvyUserBuilder.user|*}
+   * @returns {CodenvyUserBuilder}
    */
-  build() {
+  build(): IUser {
     return this.user;
   }
 
