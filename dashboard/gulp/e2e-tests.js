@@ -24,7 +24,7 @@ gulp.task('webdriver-standalone', gulpProtractorAngular.webdriver_standalone);
 
 function runProtractor (done) {
   let params = process.argv;
-  let args = params.length > 3 ? [params[3], params[4]] : [];
+  let args = params.length > 3 ? params.slice(3) : [];
 
   gulp.src(path.join(conf.paths.e2e, '/**/*.js'))
     .pipe(gulpProtractorAngular({
