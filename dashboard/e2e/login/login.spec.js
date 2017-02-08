@@ -9,6 +9,7 @@ describe('Login page', () => {
 
     browser.get('/');
     browser.waitForAngular();
+    loginPageObject.findLoginFormElements();
   });
 
   it('should be shown', () => {
@@ -45,6 +46,15 @@ describe('Login page', () => {
     browser.waitForAngular();
 
     expect(browser.getCurrentUrl()).not.toMatch(/login/);
+  });
+
+  it('should logout user', () => {
+    loginPageObject.findNavbarElements();
+    loginPageObject.doLogout();
+
+    browser.waitForAngular();
+
+    expect(browser.getCurrentUrl()).toMatch(/login/);
   });
 
 });
