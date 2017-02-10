@@ -14,7 +14,15 @@
  */
 package com.codenvy.api.workspace.server.filters;
 
+import com.codenvy.api.permission.server.PermissionsManager;
+import com.codenvy.api.permission.server.SystemDomain;
+import com.codenvy.api.permission.server.model.impl.AbstractPermissions;
+import com.google.inject.Inject;
+
+import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.ForbiddenException;
+import org.eclipse.che.api.core.NotFoundException;
+import org.eclipse.che.api.core.Page;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.workspace.server.stack.StackService;
 import org.eclipse.che.commons.env.EnvironmentContext;
@@ -42,6 +50,14 @@ import static com.codenvy.api.workspace.server.stack.StackDomain.UPDATE;
 @Filter
 @Path("/stack{path:(/.*)?}")
 public class StackPermissionsFilter extends CheMethodInvokerFilter {
+
+    private final PermissionsManager permissionsManager;
+
+    @Inject
+    public StackPermissionsFilter(PermissionsManager permissionsManager) {
+        this.permissionsManager = permissionsManager;
+    }
+
     @Override
     public void filter(GenericResourceMethod genericResourceMethod, Object[] arguments) throws ForbiddenException, ServerException {
         final String methodName = genericResourceMethod.getMethod().getName();
@@ -86,8 +102,52 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
                 throw new ForbiddenException("The user does not have permission to perform this operation");
         }
 
+        if (currentSubject.hasPermission(SystemDomain.DOMAIN_ID, stackId, SystemDomain.MANAGE_SYSTEM_ACTION)
+            && isStackPredefined(stackId)) {
+            // allow any operation with predefined stack if user has 'manageSystem' permission
+            return;
+        }
+
         if (!currentSubject.hasPermission(DOMAIN_ID, stackId, action)) {
             throw new ForbiddenException("The user does not have permission to " + action + " stack with id '" + stackId + "'");
         }
     }
+
+    /**
+     * Determines whether stack is predefined.
+     * Note, that 'predefined' means public for all users (not necessary provided with system from the box).
+     *
+     * @param stackId
+     *         id of stack to test
+     * @return true if stack is predefined, false otherwise
+     * @throws ServerException
+     *         when any error occurs during permissions fetching
+     */
+    private boolean isStackPredefined(String stackId) throws ServerException {
+        try {
+            for (Page<AbstractPermissions> permissionsPage = permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
+                 permissionsPage.hasNextPage();
+                 permissionsPage = getNextPermissionsPage(permissionsPage, stackId)) {
+                for (AbstractPermissions stackPermission : permissionsPage.getItems()) {
+                    if (stackPermission.getUserId() == null) { // null == *
+                        return true;
+                    }
+                }
+            }
+        } catch (ConflictException | NotFoundException e) { /* consider that stack is not predefined */ }
+        return false;
+    }
+
+    private Page<AbstractPermissions> getNextPermissionsPage(Page<AbstractPermissions> permissionsPage,
+                                                             String stackId) throws NotFoundException,
+                                                                                    ConflictException,
+                                                                                    ServerException {
+        if (!permissionsPage.hasNextPage()) {
+            return null;
+        }
+
+        final Page.PageRef nextPageRef = permissionsPage.getNextPageRef();
+        return permissionsManager.getByInstance(DOMAIN_ID, stackId, nextPageRef.getPageSize(), (int) nextPageRef.getItemsBefore());
+    }
+
 }
