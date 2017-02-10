@@ -44,7 +44,6 @@ public class OnPremisesIdeApiServletModule extends ServletModule {
                                                                  "/workspace",
                                                                  "/audit",
                                                                  "/user",
-                                                                 "/async/*",
                                                                  "/profile",
                                                                  "/profile/*",
                                                                  "/oauth/token",
