@@ -6,7 +6,6 @@
 # http://www.eclipse.org/legal/epl-v10.html
 #
 
-
 post_cmd_config() {
   # If this is windows, we need to add a special volume for postgres
   if has_docker_for_windows_client; then
