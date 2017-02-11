@@ -101,6 +101,7 @@ generate_configuration_with_puppet() {
                   ${WRITE_PARAMETERS} \
                   -e \"POSTGRES_ENV_FILE=${POSTGRES_ENV_FILE}\" \
                   -e \"CODENVY_ENV_FILE=${CODENVY_ENV_FILE}\" \
+                  -e \"CODENVY_HOST=${CODENVY_HOST}\" \
                   -e \"CHE_CONTAINER_ROOT=${CHE_CONTAINER_ROOT}\" \
                   -e \"CHE_ENVIRONMENT=${CHE_ENVIRONMENT}\" \
                   -e \"CHE_CONFIG=${CHE_HOST_INSTANCE}\" \
